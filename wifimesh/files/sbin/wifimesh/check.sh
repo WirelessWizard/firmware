@@ -59,7 +59,7 @@ if [ "${bad_status}" -eq 1 ]; then
 		echo "timer" > /sys/class/leds/ubnt:red:link1/trigger
 		echo 5000 > /sys/class/leds/ubnt:red:link1/delay_on
 		echo 1000 > /sys/class/leds/ubnt:red:link1/delay_off
-	elif [ "$(cat /tmp/sysinfo/board_name)" = "om2p" ]; then
+	elif [ "$(grep 'om2p' /tmp/sysinfo/board_name)" ]; then
 		echo 0 > /sys/class/leds/om2p:green:wifi/brightness
 		echo 0 > /sys/class/leds/om2p:yellow:wifi/brightness
 		echo 0 > /sys/class/leds/om2p:red:wifi/brightness
@@ -74,7 +74,7 @@ else
 		echo 1 > /sys/class/leds/ubnt:green:link3/brightness
 		echo 1 > /sys/class/leds/ubnt:orange:link2/brightness
 		echo 1 > /sys/class/leds/ubnt:red:link1/brightness
-	elif [ "$(cat /tmp/sysinfo/board_name)" = "om2p" ]; then
+	elif [ "$(grep 'om2p' /tmp/sysinfo/board_name)" ]; then
 		echo "none" > /sys/class/leds/om2p:red:wifi/trigger
 		echo 1 > /sys/class/leds/om2p:green:wifi/brightness
 		echo 0 > /sys/class/leds/om2p:yellow:wifi/brightness
