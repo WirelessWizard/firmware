@@ -97,7 +97,7 @@ else
 	top_users=""
 fi
 
-echo "Acquiring routing information"
+echo "Acquiring node information"
 echo "" > /tmp/checkin/rank
 echo "" > /tmp/checkin/nbs
 echo "" > /tmp/checkin/rssi
@@ -115,13 +115,26 @@ nbs=$(cat /tmp/checkin/nbs | tr '\n' ' ' | sed 's/ //g')
 rssi=$(cat /tmp/checkin/rssi | tr '\n' ' ' | sed 's/ //g')
 ntr=$(cat /tmp/checkin/ntr | tr '\n' ' ' | sed 's/ //g')
 
+echo "Acquiring client information"
+echo "" > /tmp/checkin/clients
+iwinfo wlan0 assoclist | while read line; do
+	if [ "$(echo ${line} | grep 'ago')" ]; then
+		echo "$(echo ${line} | awk '{ print $1 "," $2 "," $5 "," $8 }' | sed 's/)//g')," >> /tmp/checkin/clients
+	elif [ "$(echo ${line} | grep 'RX')" ]; then
+		echo "$(echo ${line} | awk '{ print $2 "," $5 $6 }')," >> /tmp/checkin/clients
+	elif [ "$(echo ${line} | grep 'TX')" ]; then
+		echo "$(echo ${line} | awk '{ print $2 "," $5 $6 }');" >> /tmp/checkin/clients
+	fi
+done
+clients=$(cat /tmp/checkin/clients | tr '\n' ' ' | sed 's/ //g')
+
 radio_channel=$(uci get wireless.radio0.channel)
 
 echo "Doing a ping test"
 rtt_internal=$(ping -c 2 ${ip_gateway} | tail -1 | awk '{print $4}' | cut -d '/' -f 2)
 rtt_external=$(ping -c 2 $(uci get wifimesh.ping.server) | tail -1 | awk '{print $4}' | cut -d '/' -f 2)
 
-echo "Checking the noise levels"
+echo "Checking the environment nearby"
 echo "" > /tmp/noise.tmp
 iw wlan0 survey dump | while read line; do
 	if [ "$(echo $line | grep 'frequency')" ]; then
@@ -137,7 +150,7 @@ model_cpu=$(uci get wifimesh.system.cpu)
 model_device=$(uci get wifimesh.system.device)
 
 # Saving Request Data
-url_data="ip=${ip_lan}&mac_lan=${mac_lan}&mac_wan=${mac_wan}&mac_wlan=${mac_wlan}&mac_mesh=${mac_mesh}&fw_ver=$(uci get wifimesh.system.version)&model_cpu=${model_cpu}&model_device=${model_device}&gateway=${ip_gateway}&ip_internal=${ip_dhcp}&memfree=${memfree}&memtotal=${memtotal}&load=${load}&uptime=${uptime}&rtt_internal=${rtt_internal}&rtt_external=${rtt_external}&rank=${rank}&nbs=${nbs}&rssi=${rssi}&ntr=${ntr}&noise=${noise}&top_users=${top_users}&role=${role}&channel_client=${radio_channel}&RR=${RR}"
+url_data="ip=${ip_lan}&mac_lan=${mac_lan}&mac_wan=${mac_wan}&mac_wlan=${mac_wlan}&mac_mesh=${mac_mesh}&fw_ver=$(uci get wifimesh.system.version)&model_cpu=${model_cpu}&model_device=${model_device}&gateway=${ip_gateway}&ip_internal=${ip_dhcp}&memfree=${memfree}&memtotal=${memtotal}&load=${load}&uptime=${uptime}&rtt_internal=${rtt_internal}&rtt_external=${rtt_external}&rank=${rank}&nbs=${nbs}&rssi=${rssi}&ntr=${ntr}&noise=${noise}&top_users=${top_users}&clients=${clients}&role=${role}&channel_client=${radio_channel}&RR=${RR}"
 
 if [ "$(uci get wifimesh.dashboard.https)" -eq 1 ]; then
 	url="https://$(uci get wifimesh.dashboard.server)/checkin-wm.php?${url_data}"
