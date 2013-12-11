@@ -22,6 +22,11 @@ iw ${if_mesh} mpath dump | grep '00:00:00:00:00:00' | while read line; do
 	iw ${if_mesh} mpath del $(echo $line | awk '{ print $1 }')
 done
 
+# Tests time is accurate
+if [ $( echo $(date -I) | grep '1970' ) ]; then
+	ntpd -n -q -p time.wifi-mesh.co.nz
+fi
+
 # Tests LAN Connectivity
 if [ "$(ping -c 2 ${ip_gateway})" ]; then
 	lan_status=1
