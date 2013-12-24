@@ -31,27 +31,58 @@ fi
 if [ "$(ping -c 2 ${ip_gateway})" ]; then
 	lan_status=1
 else
-	bad_status=1
-	lan_status=0
+	# Try to resolve LAN issues by renewing DHCP lease
+	udhcpc -i br-wan | grep 'obtained'
+	
+	# Tests LAN Connectivity (again)
+	if [ "$(ping -c 2 $(route -n | grep 'UG' | grep 'br-wan' | awk '{ print $2 }' | head -1) )" ]; then
+		lan_status=1
+		
+		log_message "check: LAN problem, resolved by renewing DHCP lease"
+	else
+		bad_status=1
+		lan_status=0
+		
+		log_message "check: LAN problem, couldn't resolve by renewing DHCP lease"
+	fi
 fi
 
 # Tests WAN Connectivity
 if [ "$(ping -c 2 $(uci get wifimesh.ping.server))" ]; then
 	wan_status=1
-else
-	bad_status=1
-	wan_status=0
-fi
-
-# Tests DNS Connectivity
-nslookup $(uci get wifimesh.ping.server) > /dev/null
-dns_temp=$?
-
-if [ "${dns_temp}" -eq 0 ]; then
 	dns_status=1
 else
-	bad_status=1
-	dns_status=0
+	# Tests DNS Connectivity
+	nslookup $(uci get wifimesh.ping.server) > /dev/null
+	dns_temp=$?
+	
+	if [ "${dns_temp}" -eq 0 ]; then
+		dns_status=1
+	else
+		# Try to resolve DNS issues by reconfiguring DNS to Google (8.8.8.8)
+		rm /tmp/resolv.conf >> /dev/null
+		rm /tmp/resolv.conf.auto >> /dev/null
+		rm /tmp/resolv.conf.dhcp >> /dev/null
+		
+		echo "" > /tmp/resolv.conf
+		echo "nameserver 8.8.8.8" >> /tmp/resolv.conf
+		echo "nameserver 8.8.4.4" >> /tmp/resolv.conf
+		
+		# Tests DNS Connectivity (again)
+		nslookup $(uci get wifimesh.ping.server) > /dev/null
+		dns_temp=$?
+		
+		if [ "${dns_temp}" -eq 0 ]; then
+			dns_status=1
+			
+			log_message "check: WAN problem, resolved by changing DNS to Google (8.8.8.8)"
+		else
+			bad_status=1
+			dns_status=0
+			
+			log_message "check: WAN problem, couldn't resolve by changing DNS to Google (8.8.8.8)"
+		fi
+	fi
 fi
 
 # Use the LEDs
