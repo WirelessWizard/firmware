@@ -150,7 +150,11 @@ model_cpu=$(uci get wifimesh.system.cpu)
 model_device=$(uci get wifimesh.system.device)
 
 # Saving Request Data
-url_data="ip=${ip_lan}&mac_lan=${mac_lan}&mac_wan=${mac_wan}&mac_wlan=${mac_wlan}&mac_mesh=${mac_mesh}&fw_ver=$(uci get wifimesh.system.version)&model_cpu=${model_cpu}&model_device=${model_device}&gateway=${ip_gateway}&ip_internal=${ip_dhcp}&memfree=${memfree}&memtotal=${memtotal}&load=${load}&uptime=${uptime}&rtt_internal=${rtt_internal}&rtt_external=${rtt_external}&rank=${rank}&nbs=${nbs}&rssi=${rssi}&ntr=${ntr}&noise=${noise}&top_users=${top_users}&clients=${clients}&role=${role}&channel_client=${radio_channel}&RR=${RR}"
+if [ "$(uci get wireless.radio0.disabled)" -eq 1]; then
+	url_data="ip=${ip_lan}&mac_lan=${mac_lan}&mac_wan=${mac_wan}&mac_wlan=&mac_mesh=${mac_mesh}&fw_ver=$(uci get wifimesh.system.version)&model_cpu=${model_cpu}&model_device=${model_device}&gateway=${ip_gateway}&ip_internal=${ip_dhcp}&memfree=${memfree}&memtotal=${memtotal}&load=${load}&uptime=${uptime}&rtt_internal=${rtt_internal}&rtt_external=${rtt_external}&rank=&nbs=&rssi=&ntr=${ntr}&noise=&top_users=${top_users}&clients=${clients}&role=G&channel_client=${radio_channel}&RR=${RR}"
+else
+	url_data="ip=${ip_lan}&mac_lan=${mac_lan}&mac_wan=${mac_wan}&mac_wlan=${mac_wlan}&mac_mesh=${mac_mesh}&fw_ver=$(uci get wifimesh.system.version)&model_cpu=${model_cpu}&model_device=${model_device}&gateway=${ip_gateway}&ip_internal=${ip_dhcp}&memfree=${memfree}&memtotal=${memtotal}&load=${load}&uptime=${uptime}&rtt_internal=${rtt_internal}&rtt_external=${rtt_external}&rank=${rank}&nbs=${nbs}&rssi=${rssi}&ntr=${ntr}&noise=${noise}&top_users=${top_users}&clients=${clients}&role=${role}&channel_client=${radio_channel}&RR=${RR}"
+fi
 
 if [ "$(uci get wifimesh.dashboard.https)" -eq 1 ]; then
 	url="https://$(uci get wifimesh.dashboard.server)/checkin-wm.php?${url_data}"
@@ -365,6 +369,12 @@ cat /tmp/checkin_request.txt | while read line ; do
 		uci set wireless.radio0.distance=$two
 	elif [ "$one" = "network.country" ]; then
 		uci set wireless.radio0.country=$two
+	elif [ "$one" = "network.nas" ]; then
+		if [ "$two" = "1" ]; then
+			uci set wireless.radio0.disabled=1
+		else
+			uci set wireless.radio0.disabled=0
+		fi
 	
 	# LAN Block
 	elif [ "$one" = "network.lan.block" ]; then
