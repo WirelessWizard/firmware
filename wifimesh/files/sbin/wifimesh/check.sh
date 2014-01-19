@@ -28,7 +28,8 @@ if [ $( echo $(date -I) | grep '1970' ) ]; then
 fi
 
 # Tests LAN Connectivity
-if [ "$(ping -c 2 ${ip_gateway})" ]; then
+ping -c 2 -w 2 ${ip_gateway}
+if [ $? -eq 0 ]; then
 	lan_status=1
 else
 	# Try to resolve LAN issues by renewing DHCP lease
