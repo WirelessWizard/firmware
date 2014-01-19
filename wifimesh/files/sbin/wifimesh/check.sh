@@ -24,16 +24,16 @@ done
 
 # Tests time is accurate
 if [ $( echo $(date -I) | grep '1970' ) ]; then
-	ntpd -n -q -p time.wifi-mesh.co.nz
+	ntpd -n -q -p time.wifi-mesh.co.nz > /dev/null
 fi
 
 # Tests LAN Connectivity
-ping -c 2 -w 2 ${ip_gateway}
+ping -c 2 -w 2 ${ip_gateway} > /dev/null
 if [ $? -eq 0 ]; then
 	lan_status=1
 else
 	# Try to resolve LAN issues by renewing DHCP lease
-	udhcpc -i br-wan | grep 'obtained'
+	udhcpc -i br-wan | grep 'obtained' > /dev/null
 	
 	# Tests LAN Connectivity (again)
 	if [ "$(ping -c 2 $(route -n | grep 'UG' | grep 'br-wan' | awk '{ print $2 }' | head -1) )" ]; then
