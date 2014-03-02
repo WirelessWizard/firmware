@@ -1,5 +1,5 @@
 #!/bin/sh /etc/rc.common
-# Copyright © 2011-2013 WiFi Mesh: New Zealand Ltd.
+# Copyright © 2011-2014 WiFi Mesh: New Zealand Ltd.
 # All rights reserved.
 
 START=98
@@ -109,6 +109,10 @@ HS_RAD_PROTO='chap'" > /etc/chilli/defaults
 
 log_message "first_boot: removing first_boot marker file"
 uci set wifimesh.system.first_boot="0"
+
+log_mesage "first_boot: moves coovachilli html pages to their necessary location"
+mv /etc/chilli-new/wait.gif /etc/chilli/www/wait.gif
+mv /etc/chilli-new/coova.html /etc/chilli/www/coova.html
 
 log_message "first_boot: saving configuration"
 uci commit

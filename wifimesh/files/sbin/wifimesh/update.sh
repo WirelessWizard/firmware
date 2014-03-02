@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright © 2011-2013 WiFi Mesh: New Zealand Ltd.
+# Copyright © 2011-2014 WiFi Mesh: New Zealand Ltd.
 # All rights reserved.
 
 # Load in the settings
@@ -259,12 +259,6 @@ cat /tmp/checkin_request.txt | while read line ; do
 				fi
 			done
 			curl -A "WMF/v$(uci get wifimesh.system.version) (http://www.wifi-mesh.co.nz/)" --cacert /etc/ssl-bundle.crt -s -o "/etc/chilli/defaults" "${url}?ip=${ip_lan}&mac_lan=${mac_lan}&mac_wan=${mac_wan}&mac_wlan=${mac_wlan}&action=coova-config&$(sed ':a;N;$!ba;s/\n//g' /tmp/dns.tmp)&dnsname=$(cat /tmp/resolv.conf.auto | awk '/wan/ {seen = 1} seen {print}' | grep 'search' | awk '{ print $2 }')"
-			
-			# get the page to use as the splash page
-			curl -A "WMF/v$(uci get wifimesh.system.version) (http://www.wifi-mesh.co.nz/)" --cacert /etc/ssl-bundle.crt -s -o "/etc/chilli/www/coova.html" "${url}?ip=${ip_lan}&mac_lan=${mac_lan}&mac_wan=${mac_wan}&mac_wlan=${mac_wlan}&action=coova-html"
-			
-			# get the logo to use on the splash page
-			curl -A "WMF/v$(uci get wifimesh.system.version) (http://www.wifi-mesh.co.nz/)" --cacert /etc/ssl-bundle.crt -s -o "/etc/chilli/www/coova.jpg" "${url}?ip=${ip_lan}&mac_lan=${mac_lan}&mac_wan=${mac_wan}&mac_wlan=${mac_wlan}&action=coova-logo"
 			
 			# start coovachilli at boot
 			/etc/init.d/chilli enable
