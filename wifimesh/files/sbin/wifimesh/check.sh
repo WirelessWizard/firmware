@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright © 2011-2013 WiFi Mesh: New Zealand Ltd.
+# Copyright © 2011-2014 WiFi Mesh: New Zealand Ltd.
 # All rights reserved.
 
 # Load in the settings
@@ -33,7 +33,7 @@ if [ $? -eq 0 ]; then
 	lan_status=1
 else
 	# Try to resolve LAN issues by renewing DHCP lease
-	udhcpc -i br-wan | grep 'obtained' > /dev/null
+	udhcpc -i br-wan --hostname $(uci get system.@system[0].hostname) --fqdn $(uci get system.@system[0].hostname) | grep 'obtained' > /dev/null
 	
 	# Tests LAN Connectivity (again)
 	if [ "$(ping -c 2 $(route -n | grep 'UG' | grep 'br-wan' | awk '{ print $2 }' | head -1) )" ]; then
